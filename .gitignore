@@ -1,0 +1,31 @@
+# Données brutes (trop volumineuses)
+data/raw/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+
+# Secrets et clés API
+.streamlit/secrets.toml
+*.env
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Power BI temporaires
+~$*.pbix
