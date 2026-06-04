@@ -13,6 +13,15 @@ import pickle
 st.set_page_config(page_title="Explorer", page_icon="🔍", layout="wide")
 
 # ===============================
+# STYLE CUSTOM POUR LES BLOCS
+# ===============================
+def bloc_info(contenu):
+    st.markdown(
+        f'<div style="background-color: #F5F5F5; border-left: 4px solid #888888; padding: 15px 20px; border-radius: 4px; margin: 10px 0;">{contenu}</div>',
+        unsafe_allow_html=True
+    )
+
+# ===============================
 # CHARGEMENT DES DONNÉES
 # ===============================
 @st.cache_resource
@@ -26,7 +35,7 @@ df = charger_donnees()
 # ===============================
 # EN-TÊTE
 # ===============================
-st.title("🔍 Explorer le catalogue")
+st.title("Explorer le catalogue")
 st.markdown("**Trouvez des films selon vos critères** : par genre, réalisateur ou acteur favori.")
 st.markdown("---")
 
@@ -34,8 +43,8 @@ st.markdown("---")
 # CHOIX DU MODE DE RECHERCHE
 # ===============================
 mode = st.radio(
-    "🎯 Comment voulez-vous explorer ?",
-    options=["🎭 Par genre", "🎬 Par réalisateur", "⭐ Par acteur"],
+    "Comment voulez-vous explorer ?",
+    options=["Par genre", "Par réalisateur", "Par acteur"],
     horizontal=True
 )
 
@@ -47,13 +56,13 @@ st.markdown("---")
 def afficher_films(films_df, n_max=12):
     """Affiche une grille de films avec leurs affiches"""
     if len(films_df) == 0:
-        st.warning("Aucun film trouvé pour ce critère.")
+        bloc_info("Aucun film trouvé pour ce critère.")
         return
     
     # Limiter à n_max films
     films_df = films_df.head(n_max).reset_index(drop=True)
     
-    st.success(f"✅ **{len(films_df)} film(s) trouvé(s)** (affichage des {min(len(films_df), n_max)} meilleurs)")
+    bloc_info(f"<strong>{len(films_df)} film(s) trouvé(s)</strong> (affichage des {min(len(films_df), n_max)} meilleurs)")
     
     # Affichage en grille de 4 colonnes
     cols_par_ligne = 4
@@ -67,20 +76,20 @@ def afficher_films(films_df, n_max=12):
                     if pd.notna(film.get('poster')) and film['poster'] != 'N/A':
                         st.image(film['poster'], use_container_width=True)
                     else:
-                        st.markdown("🎞️ *Affiche non disponible*")
+                        st.markdown("*Affiche non disponible*")
                     
                     # Infos
                     st.markdown(f"**{film['movie_title'].strip()}**")
-                    st.caption(f"📅 {int(film['title_year'])} • ⭐ {film['imdb_score']}/10")
+                    st.caption(f"{int(film['title_year'])} • {film['imdb_score']}/10")
                     
                     genres = [film[g] for g in ['genre_1', 'genre_2', 'genre_3'] if pd.notna(film[g])]
-                    st.caption(f"🏷️ {', '.join(genres)}")
+                    st.caption(f"{', '.join(genres)}")
                     
                     if pd.notna(film.get('director_name')):
-                        st.caption(f"🎬 {film['director_name']}")
+                        st.caption(f"{film['director_name']}")
                     
                     # Synopsis dans un expander
-                    with st.expander("📖 Synopsis"):
+                    with st.expander("Synopsis"):
                         if pd.notna(film.get('plot')):
                             st.write(film['plot'])
                         else:
@@ -89,8 +98,8 @@ def afficher_films(films_df, n_max=12):
 # ===============================
 # MODE 1 — FILTRE PAR GENRE
 # ===============================
-if mode == "🎭 Par genre":
-    st.subheader("🎭 Recherche par genre")
+if mode == "Par genre":
+    st.subheader("Recherche par genre")
     
     # Liste des genres disponibles (toutes positions)
     tous_genres = pd.concat([df['genre_1'], df['genre_2'], df['genre_3']]).dropna().unique()
@@ -117,15 +126,15 @@ if mode == "🎭 Par genre":
     
     films_filtres = df[masque].sort_values('imdb_score', ascending=False)
     
-    st.markdown(f"### 🎬 Top films de genre **{genre_choisi}**")
+    st.markdown(f"### Top films de genre **{genre_choisi}**")
     afficher_films(films_filtres, n_max=n_resultats)
 
 
 # ===============================
 # MODE 2 — FILTRE PAR RÉALISATEUR
 # ===============================
-elif mode == "🎬 Par réalisateur":
-    st.subheader("🎬 Recherche par réalisateur")
+elif mode == "Par réalisateur":
+    st.subheader("Recherche par réalisateur")
     
     # Liste des réalisateurs (avec au moins 1 film, triés alphabétiquement)
     realisateurs = sorted(df['director_name'].dropna().unique())
@@ -142,19 +151,19 @@ elif mode == "🎬 Par réalisateur":
     # Stats sur le réalisateur
     if len(films_filtres) > 0:
         col_s1, col_s2, col_s3 = st.columns(3)
-        col_s1.metric("🎬 Films dans la base", len(films_filtres))
-        col_s2.metric("⭐ Note moyenne", f"{films_filtres['imdb_score'].mean():.2f}/10")
-        col_s3.metric("📅 Période", f"{int(films_filtres['title_year'].min())}–{int(films_filtres['title_year'].max())}")
+        col_s1.metric("Films dans la base", len(films_filtres))
+        col_s2.metric("Note moyenne", f"{films_filtres['imdb_score'].mean():.2f}/10")
+        col_s3.metric("Période", f"{int(films_filtres['title_year'].min())}–{int(films_filtres['title_year'].max())}")
     
-    st.markdown(f"### 🎬 Films réalisés par **{real_choisi}**")
+    st.markdown(f"### Films réalisés par **{real_choisi}**")
     afficher_films(films_filtres, n_max=24)
 
 
 # ===============================
 # MODE 3 — FILTRE PAR ACTEUR
 # ===============================
-elif mode == "⭐ Par acteur":
-    st.subheader("⭐ Recherche par acteur")
+elif mode == "Par acteur":
+    st.subheader("Recherche par acteur")
     
     # On combine les 3 colonnes d'acteurs pour avoir tous les acteurs uniques
     tous_acteurs = pd.concat([df['actor_1_name'], df['actor_2_name'], df['actor_3_name']])
@@ -178,11 +187,11 @@ elif mode == "⭐ Par acteur":
     # Stats sur l'acteur
     if len(films_filtres) > 0:
         col_s1, col_s2, col_s3 = st.columns(3)
-        col_s1.metric("🎬 Films dans la base", len(films_filtres))
-        col_s2.metric("⭐ Note moyenne", f"{films_filtres['imdb_score'].mean():.2f}/10")
-        col_s3.metric("📅 Période", f"{int(films_filtres['title_year'].min())}–{int(films_filtres['title_year'].max())}")
+        col_s1.metric("Films dans la base", len(films_filtres))
+        col_s2.metric("Note moyenne", f"{films_filtres['imdb_score'].mean():.2f}/10")
+        col_s3.metric("Période", f"{int(films_filtres['title_year'].min())}–{int(films_filtres['title_year'].max())}")
     
-    st.markdown(f"### ⭐ Films avec **{acteur_choisi}**")
+    st.markdown(f"### Films avec **{acteur_choisi}**")
     afficher_films(films_filtres, n_max=24)
 
 
@@ -190,7 +199,7 @@ elif mode == "⭐ Par acteur":
 # PIED DE PAGE
 # ===============================
 st.markdown("---")
-st.caption("🔍 Catalogue de 1000 films cultes — Données IMDb + OMDb")
+st.caption(f"Catalogue de {len(df):,} films cultes — Données IMDb + OMDb")
 
 # ===============================
 # SIDEBAR

@@ -12,16 +12,32 @@ import pandas as pd
 st.set_page_config(page_title="Étude de marché Creuse", page_icon="📊", layout="wide")
 
 # ===============================
+# STYLE CUSTOM POUR LES BLOCS
+# ===============================
+def bloc_info(contenu):
+    st.markdown(
+        f'<div style="background-color: #F5F5F5; border-left: 4px solid #888888; padding: 15px 20px; border-radius: 4px; margin: 10px 0;">{contenu}</div>',
+        unsafe_allow_html=True
+    )
+
+def bloc_swot(titre, items):
+    items_html = "".join([f"<li>{item}</li>" for item in items])
+    st.markdown(
+        f'<div style="background-color: #F5F5F5; border-left: 4px solid #666666; padding: 15px 20px; border-radius: 4px; margin: 10px 0; min-height: 200px;"><h4 style="margin-top: 0; color: #333333;">{titre}</h4><ul style="margin-bottom: 0; padding-left: 20px;">{items_html}</ul></div>',
+        unsafe_allow_html=True
+    )
+
+# ===============================
 # EN-TÊTE
 # ===============================
-st.title("📊 Étude de marché — Cinéma en Creuse")
+st.title("Étude de marché — Cinéma en Creuse")
 st.markdown("### Phase 1 du projet — Analyse du contexte local")
 st.markdown("---")
 
 # ===============================
 # CONTEXTE
 # ===============================
-st.header("🎯 1. Contexte et enjeux")
+st.header("1. Contexte et enjeux")
 
 st.markdown("""
 Un cinéma indépendant situé dans le département de la Creuse (23) souhaite engager 
@@ -41,7 +57,7 @@ st.markdown("---")
 # ===============================
 # DÉMOGRAPHIE
 # ===============================
-st.header("👥 2. Profil démographique de la Creuse")
+st.header("2. Profil démographique de la Creuse")
 
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Population (2023)", "115 527", "-2,62% vs 2017")
@@ -60,7 +76,6 @@ le cœur de cible naturel du cinéma creusois est constitué de **spectateurs s�
 qui ont des préférences cinématographiques bien identifiées par les études CNC.
 """)
 
-# Tableau démographique
 st.subheader("Comparaison Creuse / France")
 demo_data = pd.DataFrame({
     "Tranche d'âge": ["Moins de 30 ans", "60 ans et plus", "Indice de vieillissement", "Part des retraités"],
@@ -75,7 +90,7 @@ st.markdown("---")
 # ===============================
 # OFFRE LOCALE
 # ===============================
-st.header("🎬 3. L'offre cinéma locale")
+st.header("3. L'offre cinéma locale")
 
 st.markdown("""
 Le département dispose actuellement de **5 cinémas actifs**, répartis sur les 
@@ -84,33 +99,24 @@ petit nombre de salles, classés en majorité **Art et Essai**.
 """)
 
 cinemas_data = pd.DataFrame({
-    "Cinéma": ["Le Sénéchal", "Le Colbert", "Claude Miller", "L'Eden", "L'Alpha", "**TOTAL**"],
-    "Commune": ["Guéret", "Aubusson", "Bourganeuf", "La Souterraine", "Évaux-les-Bains", "**5 communes**"],
-    "Salles": ["5", "2", "1", "1", "1", "**10**"],
-    "Fauteuils": ["697", "379", "287", "190", "172", "**≈ 1 725**"],
-    "Entrées 2024": ["94 792", "≈ 22 000", "≈ 12 500", "12 305", "13 747", "**≈ 155 000**"]
+    "Cinéma": ["Le Sénéchal", "Le Colbert", "Claude Miller", "L'Eden", "L'Alpha", "TOTAL"],
+    "Commune": ["Guéret", "Aubusson", "Bourganeuf", "La Souterraine", "Évaux-les-Bains", "5 communes"],
+    "Salles": ["5", "2", "1", "1", "1", "10"],
+    "Fauteuils": ["697", "379", "287", "190", "172", "≈ 1 725"],
+    "Entrées 2024": ["94 792", "≈ 22 000", "≈ 12 500", "12 305", "13 747", "≈ 155 000"]
 })
 st.dataframe(cinemas_data, use_container_width=True, hide_index=True)
 
-st.info("""
-**🎯 Insight clé** : avec ≈ 155 000 entrées en 2024 pour 115 527 habitants, 
-l'indice de fréquentation creusois est de **1,34 entrée par habitant**, soit 
-nettement inférieur à la moyenne nationale de **2,73**. Le potentiel d'attraction 
-de nouveaux spectateurs existe, à condition de proposer une expérience adaptée.
-""")
+bloc_info("<strong>Insight clé</strong> : avec ≈ 155 000 entrées en 2024 pour 115 527 habitants, l'indice de fréquentation creusois est de <strong>1,34 entrée par habitant</strong>, soit nettement inférieur à la moyenne nationale de <strong>2,73</strong>. Le potentiel d'attraction de nouveaux spectateurs existe, à condition de proposer une expérience adaptée.")
 
-st.success("""
-**📈 Bonne nouvelle** : selon le CNC, la fréquentation cinématographique 
-est en **croissance forte de +20 % sur 10 ans** dans les zones rurales. 
-Le cinéma creusois s'inscrit dans un segment porteur.
-""")
+bloc_info("<strong>Bonne nouvelle</strong> : selon le CNC, la fréquentation cinématographique est en <strong>croissance forte de +20 % sur 10 ans</strong> dans les zones rurales. Le cinéma creusois s'inscrit dans un segment porteur.")
 
 st.markdown("---")
 
 # ===============================
 # PROFIL SPECTATEUR
 # ===============================
-st.header("🎥 4. Profil-type du spectateur creusois")
+st.header("4. Profil-type du spectateur creusois")
 
 st.markdown("""
 Le croisement des données démographiques de la Creuse avec les études CNC sur les 
@@ -118,7 +124,7 @@ pratiques des Français permet de dresser un profil-type fiable du spectateur cr
 """)
 
 profils_data = pd.DataFrame({
-    "Profil": ["🧓 Sénior fidèle (50+)", "👨‍👩‍👧 Famille / public mixte", "🧑 Jeune adulte (-30)"],
+    "Profil": ["Sénior fidèle (50+)", "Famille / public mixte", "Jeune adulte (-30)"],
     "Part estimée": ["≈ 50 %", "≈ 30 %", "≈ 20 %"],
     "Attentes principales": [
         "Films français, drames, comédies, séances après-midi",
@@ -144,16 +150,16 @@ st.markdown("---")
 # ===============================
 # PRÉFÉRENCES
 # ===============================
-st.header("🎞️ 5. Préférences cinématographiques")
+st.header("5. Préférences cinématographiques")
 
 st.subheader("Top 5 des films préférés des Français de 65+ (enquête BVA)")
 
 st.markdown("""
-1. 🎖️ **Le Vieux Fusil** (1975) — drame de guerre
-2. 🌟 **Intouchables** (2011) — comédie dramatique française
-3. 🎭 **La Grande Vadrouille** (1966) — comédie classique
-4. 🔫 **Les Tontons Flingueurs** (1963) — comédie patrimoniale
-5. 🎬 **Bienvenue chez les Ch'tis** (2008) — comédie populaire
+1. **Le Vieux Fusil** (1975) — drame de guerre
+2. **Intouchables** (2011) — comédie dramatique française
+3. **La Grande Vadrouille** (1966) — comédie classique
+4. **Les Tontons Flingueurs** (1963) — comédie patrimoniale
+5. **Bienvenue chez les Ch'tis** (2008) — comédie populaire
 """)
 
 st.markdown("""
@@ -170,54 +176,50 @@ st.markdown("---")
 # ===============================
 # SWOT
 # ===============================
-st.header("⚖️ 6. Analyse SWOT")
+st.header("6. Analyse SWOT")
 
 col_swot1, col_swot2 = st.columns(2)
 
 with col_swot1:
-    st.success("""
-    **💪 FORCES**
-    - Public sénior fidèle et assidu (4,2 entrées/an)
-    - Faible concurrence locale (5 cinémas seulement)
-    - Maillage Art et Essai bien implanté
-    - Dynamique nationale rurale en croissance (+20 % sur 10 ans)
-    - Année 2024 en hausse partout dans le département
-    """)
+    bloc_swot("FORCES", [
+        "Public sénior fidèle et assidu (4,2 entrées/an)",
+        "Faible concurrence locale (5 cinémas seulement)",
+        "Maillage Art et Essai bien implanté",
+        "Dynamique nationale rurale en croissance (+20 % sur 10 ans)",
+        "Année 2024 en hausse partout dans le département"
+    ])
     
-    st.info("""
-    **🚀 OPPORTUNITÉS**
-    - Outil de recommandation = différenciation forte
-    - Tarifs préférentiels seniors (potentiel non saturé)
-    - Films français porteurs (43,5 % entrées seniors)
-    - Partenariats avec EHPAD, MJC, associations seniors
-    - Cinéma comme lien social en zone rurale
-    """)
+    bloc_swot("OPPORTUNITÉS", [
+        "Outil de recommandation = différenciation forte",
+        "Tarifs préférentiels seniors (potentiel non saturé)",
+        "Films français porteurs (43,5 % entrées seniors)",
+        "Partenariats avec EHPAD, MJC, associations seniors",
+        "Cinéma comme lien social en zone rurale"
+    ])
 
 with col_swot2:
-    st.warning("""
-    **⚠️ FAIBLESSES**
-    - Indice de fréquentation creusois bas (1,34 vs 2,73 national)
-    - Pouvoir d'achat -12 % vs moyenne nationale
-    - Public peu nombreux (115 527 habitants)
-    - Faible appétence pour le numérique chez les +60 ans
-    - Trajets parfois longs en zone rurale
-    """)
+    bloc_swot("FAIBLESSES", [
+        "Indice de fréquentation creusois bas (1,34 vs 2,73 national)",
+        "Pouvoir d'achat -12 % vs moyenne nationale",
+        "Public peu nombreux (115 527 habitants)",
+        "Faible appétence pour le numérique chez les +60 ans",
+        "Trajets parfois longs en zone rurale"
+    ])
     
-    st.error("""
-    **🔴 MENACES**
-    - Concurrence du streaming (Netflix, Prime, Disney+)
-    - Vieillissement et baisse démographique continue
-    - Hausse des coûts d'exploitation (énergie, salaires)
-    - Départ des jeunes hors département (études)
-    - Concurrence des grandes salles (Limoges, Montluçon)
-    """)
+    bloc_swot("MENACES", [
+        "Concurrence du streaming (Netflix, Prime, Disney+)",
+        "Vieillissement et baisse démographique continue",
+        "Hausse des coûts d'exploitation (énergie, salaires)",
+        "Départ des jeunes hors département (études)",
+        "Concurrence des grandes salles (Limoges, Montluçon)"
+    ])
 
 st.markdown("---")
 
 # ===============================
 # RECOMMANDATIONS
 # ===============================
-st.header("🎯 7. Recommandations pour le projet data")
+st.header("7. Recommandations pour le projet data")
 
 st.markdown("""
 Cette étude oriente directement les choix techniques du projet. Les conclusions 
@@ -247,7 +249,7 @@ st.markdown("---")
 # ===============================
 # SOURCES
 # ===============================
-with st.expander("📚 Voir toutes les sources de cette étude"):
+with st.expander("Voir toutes les sources de cette étude"):
     st.markdown("""
     **Sources institutionnelles**
     - INSEE — Dossier complet du département de la Creuse (23)
@@ -270,7 +272,7 @@ with st.expander("📚 Voir toutes les sources de cette étude"):
     - Médiamétrie — Étude « Cinémas en mouvement » (2025)
     """)
 
-st.caption("📅 Document rédigé en avril 2026 — Phase 1 du projet de système de recommandation cinématographique")
+st.caption("Document rédigé en avril 2026 — Phase 1 du projet de système de recommandation cinématographique")
 
 # ===============================
 # SIDEBAR

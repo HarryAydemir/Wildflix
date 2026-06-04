@@ -11,10 +11,19 @@ import pickle
 # CONFIGURATION DE LA PAGE
 # ===============================
 st.set_page_config(
-    page_title="🎬 Cinéma Creuse",
+    page_title="Cinéma Creuse",
     page_icon="🎬",
     layout="wide"
 )
+
+# ===============================
+# STYLE CUSTOM POUR LES BLOCS
+# ===============================
+def bloc_explication(contenu):
+    st.markdown(
+        f'<div style="background-color: #F5F5F5; border-left: 3px solid #888888; padding: 10px 15px; border-radius: 4px; margin: 8px 0; font-size: 13px;">{contenu}</div>',
+        unsafe_allow_html=True
+    )
 
 # ===============================
 # CHARGEMENT DU MODÈLE (en cache)
@@ -34,7 +43,7 @@ df = elements['df']
 # ===============================
 # EN-TÊTE DE LA PAGE
 # ===============================
-st.title("🎬 Cinéma Creuse — Recommandations personnalisées")
+st.title("Cinéma Creuse — Recommandations personnalisées")
 st.markdown("**Trouvez votre prochain film coup de cœur** à partir d'un titre que vous avez aimé.")
 st.markdown("---")
 
@@ -55,7 +64,7 @@ with col1:
     # Liste déroulante avec tous les films (triés alphabétiquement)
     liste_films = sorted(df['movie_title'].str.strip().unique().tolist())
     film_choisi = st.selectbox(
-        "🎥 Choisissez un film que vous avez aimé :",
+        "Choisissez un film que vous avez aimé :",
         options=liste_films,
         index=liste_films.index('Inception') if 'Inception' in liste_films else 0
     )
@@ -75,33 +84,82 @@ def recommander(titre, n=5):
     return list(zip(indices[0][1:], distances[0][1:]))
 
 # ===============================
+# FONCTION D'EXPLICATION DE LA SIMILARITÉ
+# ===============================
+def expliquer_similarite(film_ref, film_reco):
+    """Génère une explication des points communs entre deux films"""
+    raisons = []
+    
+    # Réalisateur identique (gros poids)
+    if pd.notna(film_ref.get('director_name')) and pd.notna(film_reco.get('director_name')):
+        if film_ref['director_name'] == film_reco['director_name']:
+            raisons.append(f"<strong>Même réalisateur</strong> : {film_ref['director_name']}")
+    
+    # Genres en commun
+    genres_ref = set([film_ref[g] for g in ['genre_1', 'genre_2', 'genre_3'] if pd.notna(film_ref[g])])
+    genres_reco = set([film_reco[g] for g in ['genre_1', 'genre_2', 'genre_3'] if pd.notna(film_reco[g])])
+    genres_communs = genres_ref & genres_reco
+    
+    if len(genres_communs) > 0:
+        nb = len(genres_communs)
+        if nb == 1:
+            raisons.append(f"<strong>Genre commun</strong> : {list(genres_communs)[0]}")
+        else:
+            raisons.append(f"<strong>{nb} genres en commun</strong> : {', '.join(sorted(genres_communs))}")
+    
+    # Période
+    if pd.notna(film_ref.get('title_year')) and pd.notna(film_reco.get('title_year')):
+        ecart_annees = abs(int(film_ref['title_year']) - int(film_reco['title_year']))
+        if ecart_annees == 0:
+            raisons.append(f"<strong>Même année</strong> ({int(film_ref['title_year'])})")
+        elif ecart_annees <= 3:
+            raisons.append(f"<strong>Période très proche</strong> ({ecart_annees} an{'s' if ecart_annees > 1 else ''} d'écart)")
+        elif ecart_annees <= 10:
+            raisons.append(f"Période proche ({ecart_annees} ans d'écart)")
+    
+    # Notes IMDb
+    if pd.notna(film_ref.get('imdb_score')) and pd.notna(film_reco.get('imdb_score')):
+        ecart_note = abs(float(film_ref['imdb_score']) - float(film_reco['imdb_score']))
+        if ecart_note <= 0.3:
+            raisons.append(f"<strong>Notes IMDb très proches</strong> ({film_ref['imdb_score']} vs {film_reco['imdb_score']})")
+        elif ecart_note <= 0.7:
+            raisons.append(f"Notes IMDb similaires ({film_ref['imdb_score']} vs {film_reco['imdb_score']})")
+    
+    # Construction du HTML final
+    if not raisons:
+        return "<strong>Pourquoi ce film ?</strong><br>Caractéristiques globales similaires (durée, popularité)."
+    
+    items = "".join([f"<li>{r}</li>" for r in raisons])
+    return f"<strong>Pourquoi ce film ?</strong><ul style='margin: 5px 0 0 0; padding-left: 20px;'>{items}</ul>"
+
+# ===============================
 # AFFICHAGE DES RECOMMANDATIONS
 # ===============================
-if st.button("🎯 Voir les recommandations", type="primary"):
+if st.button("Voir les recommandations", type="primary"):
     
     # Infos du film de référence
     info_film = df[df['movie_title'].str.strip() == film_choisi].iloc[0]
     
-    st.markdown("### 📽️ Film de référence")
+    st.markdown("### Film de référence")
     col_aff, col_info = st.columns([1, 3])
     
     with col_aff:
         if pd.notna(info_film.get('poster')) and info_film['poster'] != 'N/A':
             st.image(info_film['poster'], width=200)
         else:
-            st.markdown("🎞️ *Affiche non disponible*")
+            st.markdown("*Affiche non disponible*")
     
     with col_info:
         st.markdown(f"### {info_film['movie_title'].strip()} ({int(info_film['title_year'])})")
-        st.markdown(f"**⭐ Note IMDb** : {info_film['imdb_score']} / 10")
-        st.markdown(f"**🎬 Réalisateur** : {info_film.get('director_name', 'N/A')}")
+        st.markdown(f"**Note IMDb** : {info_film['imdb_score']} / 10")
+        st.markdown(f"**Réalisateur** : {info_film.get('director_name', 'N/A')}")
         genres = [info_film[g] for g in ['genre_1', 'genre_2', 'genre_3'] if pd.notna(info_film[g])]
-        st.markdown(f"**🏷️ Genres** : {', '.join(genres)}")
+        st.markdown(f"**Genres** : {', '.join(genres)}")
         if pd.notna(info_film.get('plot')):
-            st.markdown(f"**📖 Synopsis** : *{info_film['plot']}*")
+            st.markdown(f"**Synopsis** : *{info_film['plot']}*")
     
     st.markdown("---")
-    st.markdown(f"### 🎯 Top {n_recos} recommandations pour vous")
+    st.markdown(f"### Top {n_recos} recommandations pour vous")
     
     # Recommandations
     recos = recommander(film_choisi, n_recos)
@@ -114,6 +172,8 @@ if st.button("🎯 Voir les recommandations", type="primary"):
         for i, (idx_voisin, dist) in enumerate(recos):
             v = df.iloc[idx_voisin]
             similarite = round((1 - dist) * 100, 1)
+            # Sécurité : forcer la valeur entre 0 et 1
+            valeur_progress = max(0.0, min(1.0, similarite / 100))
             
             with cols[i % cols_par_ligne]:
                 # Affiche
@@ -122,11 +182,15 @@ if st.button("🎯 Voir les recommandations", type="primary"):
                 
                 # Infos
                 st.markdown(f"**{v['movie_title'].strip()}**")
-                st.caption(f"📅 {int(v['title_year'])} • ⭐ {v['imdb_score']}/10")
-                st.caption(f"🎬 {v.get('director_name', 'N/A')}")
-                st.progress(similarite / 100, text=f"Similarité : {similarite}%")
+                st.caption(f"{int(v['title_year'])} • {v['imdb_score']}/10")
+                st.caption(f"{v.get('director_name', 'N/A')}")
+                st.progress(valeur_progress, text=f"Similarité : {similarite}%")
                 
-                # Bouton détails (optionnel)
+                # Encart explicatif (NOUVEAU)
+                explication = expliquer_similarite(info_film, v)
+                bloc_explication(explication)
+                
+                # Synopsis dans un expander
                 with st.expander("Voir le synopsis"):
                     if pd.notna(v.get('plot')):
                         st.write(v['plot'])
